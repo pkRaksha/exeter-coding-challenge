@@ -5,6 +5,7 @@ import psutil
 import os
 
 french_dict = {}
+frequency = {}
 start = time.monotonic()
 
 # open and read the shakespeare file
@@ -18,7 +19,7 @@ unique_words = x.read()
 words_to_find = list(unique_words.split("\n"))
 
 # open the CSV file
-with open('french_dictionary.csv', mode='r')as file:
+with open('french_dictionary.csv', mode='r') as file:
 
     # reading the CSV file
     dict_file = csv.reader(file)
@@ -33,22 +34,34 @@ fields = ["English", "French", "Frequency"]
 with open("frequency.csv", 'w') as csvfile:
     csv_file = csv.writer(csvfile)
     csv_file.writerow(fields)
+    f = open("t8.shakespeare.translated.txt", "w")
+    # splits at new line to iterate through each line
+    for line in inputFile.split('\n'):
+        # splits at a space to iterate through each word
+        for word in line.split():
+            translated_word = ''
+            # splits the punctuated word and stores as list
+            for punc_splitted_words in re.findall(r'\w+|[^\s\w]+', word):
+                # checks for each value in the list is present in the word list
+                if punc_splitted_words in words_to_find:
+                    # checks if the word is present in the dictionary for translation
+                    if french_dict[punc_splitted_words]:
+                        # checks if the word is present in frequency  if yes increments and assign the count as value
+                        if punc_splitted_words in frequency:
+                            frequency[punc_splitted_words] += 1
+                        else:
+                            frequency[punc_splitted_words] = 1
+                        # Assigns the french word to the corresponding english word
+                        punc_splitted_words = french_dict[punc_splitted_words]
+                        # append the french word
+                translated_word += punc_splitted_words
 
-    for x in range(len(words_to_find)):
-        if french_dict[words_to_find[x]]:
-            # to calculate the occurances of each word from the find_words file in the shakespeare file
-            a = len([*re.finditer("\\b"+words_to_find[x]+"\\b", inputFile)])
-        # to store the result as a CSV file
-            csv_file.writerow(
-                [words_to_find[x], french_dict[words_to_find[x]], a])
-        # to translate the words found from the find_words file
-            inputFile = re.sub(
-                "\\b"+words_to_find[x]+"\\b", french_dict[words_to_find[x]], inputFile)
+            f.write(translated_word+" ")
+        f.write("\n")
+    for x in frequency:
+        csv_file.writerow([x, french_dict[x], frequency[x]])
 
 
-# to store the translated file
-f = open("t8.shakespeare.translated.txt", "a")
-f.write(inputFile)
 f.close()
 
 
